@@ -15,8 +15,8 @@ Please create the following sub-directories:
 * data
 * model
 * prediction
- * high-recall
- * high-precision
+  * high-recall
+  * high-precision
 * test
 
 ## Downloading Data, Training, and Testing
