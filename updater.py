@@ -63,6 +63,7 @@ def update_prediction(date, model_names):
     for model_name in model_names:
         create_map.create_map('prediction/' + model_name + '/' + date + '.png', filename='prediction/' + model_name + '/' + 'map_' + date + '.png')
         list_earthquakes.list_earthquakes('prediction/' + model_name + '/' + date + '.csv', filename='prediction/' + model_name + '/' + 'list_' + date + '.csv')
+        list_earthquakes.add_deltas(model_name, date, (datetime.strptime(date, '%Y-%m-%d') - timedelta(days=1)).strftime('%Y-%m-%d'))
         with open('prediction/' + model_name + '/' + 'date.txt', 'w') as f:
             f.write(date)
         with open('prediction/' + model_name + '/' + 'archive.txt', 'a') as f:
