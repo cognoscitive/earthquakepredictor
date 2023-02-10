@@ -136,8 +136,8 @@ def download_month(year, month):
     elif month == 12:
         end_year = year + 1
         end_month = 1
-    data = urlopen('https://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime='+str(year)+'-'+pad_number(month)+'-01&endtime='+str(end_year)+'-'+pad_number(end_month)+'-01')
-    with open(DATA_PATH + str(year) + '-' + pad_number(month) + '.csv', 'w') as f:
+    data = urlopen('http://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime='+str(year)+'-'+pad_number(month)+'-01&endtime='+str(end_year)+'-'+pad_number(end_month)+'-01')
+    with open(DATA_PATH + str(year) + '-' + pad_number(month) + '.csv', 'w', encoding='utf-8', errors='ignore') as f:
         f.write(data.read().decode('utf-8'))
 
 def download_day(year, month, day):
@@ -165,8 +165,8 @@ def download_day(year, month, day):
         end_year = year
         end_month = month
         end_day = day + 1
-    data = urlopen('https://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime='+str(year)+'-'+pad_number(month)+'-'+pad_number(day)+'&endtime='+str(end_year)+'-'+pad_number(end_month)+'-'+pad_number(end_day))
-    with open(DATA_PATH + str(year) + '-' + pad_number(month) + '-' + pad_number(day) + '.csv', 'w') as f:
+    data = urlopen('http://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime='+str(year)+'-'+pad_number(month)+'-'+pad_number(day)+'&endtime='+str(end_year)+'-'+pad_number(end_month)+'-'+pad_number(end_day))
+    with open(DATA_PATH + str(year) + '-' + pad_number(month) + '-' + pad_number(day) + '.csv', 'w', encoding='utf-8', errors='ignore') as f:
         f.write(data.read().decode('utf-8'))
 
 def download_dataset():
@@ -255,7 +255,7 @@ def generate_dataset():
     data = initialize_energies(data)
     for year in range(START_DATE.year, END_DATE.year):
         for month in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']:
-            with open(DATA_PATH + str(year) + '-' + month + '.csv', 'r') as f:
+            with open(DATA_PATH + str(year) + '-' + month + '.csv', 'r', encoding='utf-8', errors='ignore') as f:
                 lines = f.readlines()
                 for line in lines[1:]:
                     earthquake = line.split(',')
@@ -287,7 +287,7 @@ def generate_testset():
     month = TEST_START_DATE.month
     day = TEST_START_DATE.day
     while year < TEST_END_DATE.year or month < TEST_END_DATE.month or day < TEST_END_DATE.day:
-        with open(DATA_PATH + str(year) + '-' + pad_number(month) + '-' + pad_number(day) + '.csv', 'r') as f:
+        with open(DATA_PATH + str(year) + '-' + pad_number(month) + '-' + pad_number(day) + '.csv', 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
             for line in lines[1:]:
                 earthquake = line.split(',')
@@ -340,7 +340,7 @@ def generate_update():
     month = UPDATE_START_DATE.month
     day = UPDATE_START_DATE.day
     while year < UPDATE_END_DATE.year or month < UPDATE_END_DATE.month or day < UPDATE_END_DATE.day:
-        with open(DATA_PATH + str(year) + '-' + pad_number(month) + '-' + pad_number(day) + '.csv', 'r') as f:
+        with open(DATA_PATH + str(year) + '-' + pad_number(month) + '-' + pad_number(day) + '.csv', 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
             for line in lines[1:]:
                 earthquake = line.split(',')
@@ -394,7 +394,7 @@ def generate_seedset(today=TODAY):
     month = start.month
     day = start.day
     while year < today.year or month < today.month or day < today.day:
-        with open(DATA_PATH + str(year) + '-' + pad_number(month) + '-' + pad_number(day) + '.csv', 'r') as f:
+        with open(DATA_PATH + str(year) + '-' + pad_number(month) + '-' + pad_number(day) + '.csv', 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
             for line in lines[1:]:
                 earthquake = line.split(',')
@@ -440,7 +440,7 @@ def data_generator(x, y, step=1):
         identity = np.eye(ONEHOT_LENGTH, dtype=np.bool_)
     while(True):
         count = 0
-        indices = range(0, len(x) - (SEQ_LEN - 1) - step, DATA_STEP)
+        indices = list(range(0, len(x) - (SEQ_LEN - 1) - step, DATA_STEP))
         if not STATEFUL:
             random.shuffle(indices)
         for i in indices:
@@ -568,11 +568,11 @@ def train(x, y, loss, step=1, pretrained=False):
                 hidden_layer_5 = TimeDistributed(LSTM(HIDDEN_NODES, name='lstm5', activation=HIDDEN_ACT, recurrent_activation=GATE_ACT, return_sequences=True, stateful=True, dropout=DROPOUT_PROB, recurrent_dropout=DROPOUT_PROB, implementation=1))(concatenate([residual_4, hidden_layer_4, hidden_layer_3, hidden_layer_2, hidden_layer_1, conv_net]))
                 output_layer = TimeDistributed(TimeDistributed(Dense(ONEHOT_LENGTH, activation='softmax')))(hidden_layer_5)
         else:
-            x = x[:len(x)/BATCH_SIZE*BATCH_SIZE]
-            y = y[:len(y)/BATCH_SIZE*BATCH_SIZE]
-            valid_split_point = int(len(x) * 0.95)/BATCH_SIZE*BATCH_SIZE
-            trains = (valid_split_point - SEQ_LEN - 1) / BATCH_SIZE
-            valids = (len(x) - valid_split_point - SEQ_LEN - 1) / BATCH_SIZE
+            x = x[:len(x)//BATCH_SIZE*BATCH_SIZE]
+            y = y[:len(y)//BATCH_SIZE*BATCH_SIZE]
+            valid_split_point = int(len(x) * 0.95)//BATCH_SIZE*BATCH_SIZE
+            trains = (valid_split_point - SEQ_LEN - 1) // BATCH_SIZE
+            valids = (len(x) - valid_split_point - SEQ_LEN - 1) // BATCH_SIZE
             x_train = x[:valid_split_point]
             y_train = y[:valid_split_point]
             x_valid = x[valid_split_point:]
@@ -864,10 +864,11 @@ def save_state(model, file_path):
 def load_state(model, file_path):
     states = np.load(file_path, allow_pickle=True)
     for i, layer_name in enumerate(STATEFUL_LAYER_NAMES):
-        model.get_layer(layer_name).reset_states(states=[states[i][0].numpy(), states[i][1].numpy()])
+        model.get_layer(layer_name).reset_states(states=[states[i][0], states[i][1]])
     return model
 
 def main():
+    """
     download_dataset()
     download_update()
 
@@ -878,7 +879,7 @@ def main():
 
     with open('date.txt', 'w') as f:
         f.write(UPDATE_END_DATE.strftime('%Y-%m-%d'))
-
+    """
     global MODEL_FILE
     global STATE_FILE
     global TEST_FILE
@@ -889,8 +890,8 @@ def main():
         train(x, y, LOSS)
         x, y = load_testset()
         test(x, y)
-        x, y = load_update()
-        update(x, y)
+        #x, y = load_update()
+        #update(x, y)
     
 
 if __name__ == "__main__":

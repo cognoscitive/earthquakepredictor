@@ -73,9 +73,14 @@ def generate_prediction(today, model_names):
     print('Generating prediction...')
     yesterday = today - timedelta(days=1)
     yesterday_date = str(yesterday.year) + '-' + earthquake_rnn.pad_number(yesterday.month) + '-' + earthquake_rnn.pad_number(yesterday.day)
+    #earthquake_rnn.generate_seedset(yesterday)
     old_data = earthquake_rnn.load_seedset()
-    if not os.path.isfile(earthquake_rnn.DATA_PATH + yesterday_date + '.csv'):
-        earthquake_rnn.download_day(yesterday.year, yesterday.month, yesterday.day)
+    while not os.path.isfile(earthquake_rnn.DATA_PATH + yesterday_date + '.csv'):
+        try:
+            earthquake_rnn.download_day(yesterday.year, yesterday.month, yesterday.day)
+        except:
+            print(sys.exc_info())
+            time.sleep(random.randint(10, 30))
     earthquake_rnn.generate_seedset(today)
     new_data = earthquake_rnn.load_seedset()
     earthquake_rnn.predict(old_data, new_data, models=model_names, today=today)
@@ -87,7 +92,7 @@ def main():
     while(True):
         today = datetime.utcnow()
         today.replace(hour=0, minute=0, second=0, microsecond=0)
-        if today.day != last_updated.day:
+        if today.year != last_updated.year or today.month != last_updated.month or today.day != last_updated.day:
             last_updated += timedelta(days=1)
             date = last_updated.strftime('%Y-%m-%d')
             generate_prediction(last_updated, earthquake_rnn.MODEL_NAMES)
@@ -96,6 +101,7 @@ def main():
             with open('date.txt', 'w') as f:
                 f.write(date)
         time.sleep(300)
+        #time.sleep(random.randint(3, 5))
 
 if __name__ == '__main__':
     main()

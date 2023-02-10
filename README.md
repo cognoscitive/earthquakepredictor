@@ -6,7 +6,7 @@ The following dependencies should be installed:
 
 * numpy
 * pillow
-* tensorflow >= 2.1
+* tensorflow >= 2.3
 
 ## Setup
 
