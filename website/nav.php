@@ -1,0 +1,1 @@
+<div><hr>| <a href="index.php">Predictions</a> | <a href="model.php">Model</a> | <a href="archive.php">Archive</a> | <a href="authorship.php">Authorship</a> |<hr></div>
